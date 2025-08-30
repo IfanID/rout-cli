@@ -99,6 +99,26 @@ git clean -fd
 git pull origin main
 ```
 
+#### 4. Mengubah Komit Terakhir (Amending Last Commit)
+Gunakan perintah ini untuk mengubah komit terakhir, misalnya untuk menambahkan perubahan kecil yang terlupakan atau mengoreksi pesan komit.
+
+```bash
+# 1. Lakukan perubahan yang diinginkan pada file.
+# 2. Tambahkan perubahan ke area staging.
+git add .
+
+# 3. Ubah komit terakhir.
+#    - Untuk menambahkan perubahan ke komit terakhir tanpa mengubah pesan:
+git commit --amend --no-edit
+
+#    - Untuk mengubah pesan komit terakhir (akan membuka editor teks):
+git commit --amend
+
+# 4. Jika komit yang diubah sudah didorong ke remote, Anda perlu melakukan force push.
+#    PERINGATAN: Ini akan menulis ulang riwayat dan berisiko bagi kolaborator lain.
+git push --force origin main
+```
+
 ---
 
 # Aturan Teknis Proyek

@@ -1,34 +1,51 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
+	"bufio"
+	
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+
+	"rout/core"
 )
 
-
-
-// rootCmd represents the base command when called without any subcommands
+// rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
 var rootCmd = &cobra.Command{
 	Use:   "rout",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Deskripsi singkat aplikasi Anda",
+	Long: `Deskripsi yang lebih panjang yang mencakup beberapa baris dan kemungkinan berisi
+contoh dan penggunaan aplikasi Anda. Contoh:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+Cobra adalah pustaka CLI untuk Go yang memberdayakan aplikasi.
+Aplikasi ini adalah alat untuk menghasilkan file yang dibutuhkan
+untuk membuat aplikasi Cobra dengan cepat.`,
+	// Hapus komentar baris berikut jika aplikasi dasar Anda
+	// memiliki tindakan yang terkait dengannya:
+	Run: func(cmd *cobra.Command, args []string) {
+		core.MOTD() // Cetak MOTD saat aplikasi dimulai
+		reader := bufio.NewReader(os.Stdin)
+		for {
+			core.Prompt() // Panggil fungsi prompt dari paket core
+
+			input, _ := reader.ReadString('\n')
+			input = strings.TrimSpace(input)
+
+			if input == "exit" || input == "quit" {
+				core.Logout()
+				break
+			}
+
+		}
+	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// Execute menambahkan semua subperintah ke perintah root dan mengatur flag dengan tepat.
+// Ini dipanggil oleh main.main(). Ini hanya perlu terjadi sekali pada rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -37,15 +54,13 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	// Di sini Anda akan mendefinisikan flag dan pengaturan konfigurasi Anda.
+	// Cobra mendukung flag persisten, yang, jika didefinisikan di sini,
+	// akan bersifat global untuk aplikasi Anda.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.rout.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "file konfigurasi (default adalah $HOME/.rout.yaml)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Cobra juga mendukung flag lokal, yang hanya akan berjalan
+	// ketika tindakan ini dipanggil secara langsung.
+	rootCmd.Flags().BoolP("toggle", "t", false, "Pesan bantuan untuk toggle")
 }
-
-

@@ -122,3 +122,8 @@ git push --force origin main
 ---
 
 # Aturan Teknis Proyek
+
+### Lokasi Eksekusi Rout
+Untuk dapat memanggil `rout` dari mana saja di sistem, pastikan executable `rout` berada di path berikut:
+- `/data/data/com.termux/files/usr/bin/rout`
+Perlu diperhatikan bahwa repositori ini berisi *kode sumber* untuk `rout`. Executable `rout` harus dibangun dari kode sumber ini dan ditempatkan di lokasi yang ditentukan di atas.

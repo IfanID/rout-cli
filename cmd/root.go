@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"rout/core"
+	"rout/core/system/command" // Added for ls, cd, pwd functions
 )
 
 // rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
@@ -27,26 +28,29 @@ untuk membuat aplikasi Cobra dengan cepat.`,
 	// Hapus komentar baris berikut jika aplikasi dasar Anda
 	// memiliki tindakan yang terkait dengannya:
 	Run: func(cmd *cobra.Command, args []string) {
-		core.MOTD() // Cetak MOTD saat aplikasi dimulai
-		reader := bufio.NewReader(os.Stdin)
-		for {
-			core.Prompt() // Panggil fungsi prompt dari paket core
+			core.MOTD() // Cetak MOTD saat aplikasi dimulai
+			reader := bufio.NewReader(os.Stdin)
+			for {
+				core.Prompt() // Panggil fungsi prompt dari paket core
 
-			input, _ := reader.ReadString('\n')
-			input = strings.TrimSpace(input)
+				input, _ := reader.ReadString('\n')
+				input = strings.TrimSpace(input)
 
-			if input == "exit" || input == "quit" {
-				core.Logout()
-				break
+				if input == "exit" || input == "quit" {
+					core.Logout()
+					break
+				}
+
+				command.RegisterCommands(input) // Call the command registration function
+
 			}
-
-		}
-	},
+		},
 }
 
 // Execute menambahkan semua subperintah ke perintah root dan mengatur flag dengan tepat.
 // Ini dipanggil oleh main.main(). Ini hanya perlu terjadi sekali pada rootCmd.
-func Execute() {
+func Execute(initialCwd string) {
+	os.Chdir(initialCwd) // Set working directory to where rout was launched
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)

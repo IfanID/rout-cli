@@ -2,20 +2,28 @@ package command
 
 import (
 	"fmt"
+	"rout/core/system/util"
 	"strings"
 )
 
 // CommandFunc defines the type for command functions.
 type CommandFunc func(args []string) error
 
-// commandsMap stores all registered commands.
-var commandsMap = make(map[string]CommandFunc)
+// CommandsMap stores all registered commands.
+var CommandsMap = make(map[string]CommandFunc)
 
 func init() {
 	// Register commands
-	commandsMap["ls"] = handleLs
-	commandsMap["cd"] = handleCd
-	commandsMap["pwd"] = handlePwd
+	CommandsMap["ls"] = handleLs
+	CommandsMap["cd"] = handleCd
+	CommandsMap["pwd"] = handlePwd
+	CommandsMap["touch"] = handleTouch
+	CommandsMap["mkdir"] = handleMkdir
+	CommandsMap["rm"] = handleRm
+	CommandsMap["cp"] = handleCp
+	CommandsMap["mv"] = handleMv
+	CommandsMap["help"] = handleHelp
+	CommandsMap["clear"] = handleClear
 }
 
 // RegisterCommands parses the input and executes the corresponding command.
@@ -31,11 +39,11 @@ func RegisterCommands(input string) {
 		commandArgs = parts[1:]
 	}
 
-	if cmdFunc, ok := commandsMap[commandName]; ok {
+	if cmdFunc, ok := CommandsMap[commandName]; ok {
 		if err := cmdFunc(commandArgs); err != nil {
-			fmt.Println("Error:", err)
+			util.TypeOut(fmt.Sprintf("Error: %v", err))
 		}
 	} else {
-		fmt.Println("Perintah tidak dikenal:", commandName)
+		util.TypeOut(fmt.Sprintf("Perintah tidak dikenal: %s", commandName))
 	}
 }

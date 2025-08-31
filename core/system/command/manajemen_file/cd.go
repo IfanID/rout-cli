@@ -1,4 +1,4 @@
-package command
+package manajemen_file
 
 import (
 	"fmt"

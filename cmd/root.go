@@ -4,15 +4,12 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"bufio"
-	
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 
 	"rout/core"
-	"rout/core/system/command" // Added for ls, cd, pwd functions
+	"rout/cmd/ui"
 )
 
 // rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
@@ -28,23 +25,9 @@ untuk membuat aplikasi Cobra dengan cepat.`,
 	// Hapus komentar baris berikut jika aplikasi dasar Anda
 	// memiliki tindakan yang terkait dengannya:
 	Run: func(cmd *cobra.Command, args []string) {
-			core.MOTD() // Cetak MOTD saat aplikasi dimulai
-			reader := bufio.NewReader(os.Stdin)
-			for {
-				core.Prompt() // Panggil fungsi prompt dari paket core
-
-				input, _ := reader.ReadString('\n')
-				input = strings.TrimSpace(input)
-
-				if input == "exit" || input == "quit" {
-					core.Logout()
-					break
-				}
-
-				command.RegisterCommands(input) // Call the command registration function
-
-			}
-		},
+		core.MOTD() // Cetak MOTD saat aplikasi dimulai
+		ui.HandleUserInput()
+	},
 }
 
 // Execute menambahkan semua subperintah ke perintah root dan mengatur flag dengan tepat.

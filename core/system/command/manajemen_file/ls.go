@@ -1,16 +1,17 @@
-package command
+package manajemen_file
 
 import (
 	"fmt"
 	"io/fs" // For fs.FileInfo
 	"os"
+	"rout/core/system/util"
+	"sort"
 	"strconv" // For human-readable size
 	"strings"
-	
 )
 
 // Ls lists the contents of a directory with options.
-func Ls(path string, showAll, longFormat, humanReadable bool) error {
+func Ls(path string, showAll, longFormat, humanReadable, sortByTime, sortBySize, reverseOrder bool) error {
 	if path == "" {
 		path = "." // Default to current directory
 	}
@@ -18,6 +19,38 @@ func Ls(path string, showAll, longFormat, humanReadable bool) error {
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return fmt.Errorf("gagal membaca direktori %s: %w", path, err)
+	}
+
+	// Sorting logic
+	if sortByTime {
+		sort.Slice(files, func(i, j int) bool {
+			infoI, errI := files[i].Info()
+			infoJ, errJ := files[j].Info()
+			if errI != nil || errJ != nil {
+				return false
+			}
+			return infoI.ModTime().After(infoJ.ModTime())
+		})
+	} else if sortBySize {
+		sort.Slice(files, func(i, j int) bool {
+			infoI, errI := files[i].Info()
+			infoJ, errJ := files[j].Info()
+			if errI != nil || errJ != nil {
+				return false
+			}
+			return infoI.Size() > infoJ.Size()
+		})
+	} else {
+		// Default sort by name
+		sort.Slice(files, func(i, j int) bool {
+			return files[i].Name() < files[j].Name()
+		})
+	}
+
+	if reverseOrder {
+		for i, j := 0, len(files)-1; i < j; i, j = i+1, j-1 {
+			files[i], files[j] = files[j], files[i]
+		}
 	}
 
 	for _, file := range files {
@@ -28,10 +61,10 @@ func Ls(path string, showAll, longFormat, humanReadable bool) error {
 		if longFormat {
 			info, err := file.Info()
 			if err != nil {
-				fmt.Printf("Error getting info for %s: %v\n", file.Name(), err)
+				util.TypeOut(fmt.Sprintf("Error getting info for %s: %v", file.Name(), err))
 				continue
 			}
-			fmt.Printf("%s %s %s %s %s %s %s\n",
+			util.TypeOut(fmt.Sprintf("%s %s %s %s %s %s %s",
 				formatPermissions(info.Mode()),
 				"1", // Placeholder for number of links
 				"owner", // Placeholder for owner
@@ -39,9 +72,9 @@ func Ls(path string, showAll, longFormat, humanReadable bool) error {
 				formatSize(info.Size(), humanReadable),
 				info.ModTime().Format("Jan _2 15:04"),
 				file.Name(),
-			)
+			))
 		} else {
-			fmt.Println(file.Name())
+			util.TypeOut(file.Name())
 		}
 	}
 	return nil
@@ -82,7 +115,7 @@ func formatSize(size int64, humanReadable bool) string {
 	}
 
 	const (
-		_ = iota
+		_  = iota
 		KB int64 = 1 << (10 * iota)
 		MB
 		GB

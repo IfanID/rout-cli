@@ -1,10 +1,9 @@
 package core
 
 import (
-	"fmt"
+	"fmt" // Tambahkan kembali import ini
 	"math/rand"
 	"os"
-	"rout/core/system/util"
 	"strings"
 	"time"
 
@@ -42,24 +41,23 @@ func getRandomColor() color.Attribute {
 	return colors[rand.Intn(len(colors))]
 }
 
-func Prompt() {
+func Prompt() string { // Mengembalikan string
 	currentDir, err := os.Getwd()
 	if err != nil {
-		util.TypeOutInline("[error] > ")
-		return
+		return "[error] > " // Mengembalikan string error
 	}
 
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		// Fallback to full path if home dir not found
-		util.TypeOutInline(fmt.Sprintf("%s %s [%s] %s %s",
+		return fmt.Sprintf("%s %s [%s] %s %s",
 			color.New(color.FgCyan).Sprint("ROut"), // Fixed to Cyan
 			color.New(getRandomColor()).Sprint("\uF07B"),
 			color.New(color.FgWhite).Sprint(currentDir), // Fixed to White
 			color.New(color.FgCyan).Sprint("»"), // Fixed to Cyan
-			color.New(getRandomColor()).Sprint("")))
-		return
+			color.New(getRandomColor()).Sprint(""))
 	}
+
 
 	displayPath := currentDir
 	if strings.HasPrefix(currentDir, homeDir) {
@@ -72,10 +70,10 @@ func Prompt() {
 	pathColor := color.New(color.FgWhite).SprintFunc() // Fixed to White
 	promptColor := color.New(color.FgCyan).SprintFunc() // Fixed to Cyan
 
-	util.TypeOutInline(fmt.Sprintf("%s %s [%s] %s %s",
+	return fmt.Sprintf("%s %s [%s] %s %s", // Mengembalikan string
 		routColor("ROut"),
 		iconColor("\uF07B"),
 		pathColor(displayPath),
 		color.New(color.FgCyan).Sprint("»"), // Fixed to Cyan
-		promptColor("")))
+		promptColor(""))
 }

@@ -22,11 +22,9 @@ contoh dan penggunaan aplikasi Anda. Contoh:
 Cobra adalah pustaka CLI untuk Go yang memberdayakan aplikasi.
 Aplikasi ini adalah alat untuk menghasilkan file yang dibutuhkan
 untuk membuat aplikasi Cobra dengan cepat.`,
-	// Hapus komentar baris berikut jika aplikasi dasar Anda
-	// memiliki tindakan yang terkait dengannya:
 	Run: func(cmd *cobra.Command, args []string) {
 		core.MOTD() // Cetak MOTD saat aplikasi dimulai
-		ui.HandleUserInput()
+		ui.StartShellSession()
 	},
 }
 

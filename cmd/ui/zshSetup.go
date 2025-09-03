@@ -55,5 +55,57 @@ func setupZshEnvironment() (string, error) {
 			}
 		}
 	}
+	// Siapkan konfigurasi starship
+	if err := setupStarship(); err != nil {
+		// Jika terjadi error, kita bisa log atau menanganinya di sini.
+		// Untuk saat ini, kita tidak menghentikan proses utama.
+	}
+
 	return customZdotdir, nil
+}
+
+// setupStarship memastikan file konfigurasi starship.toml ada di ~/.config.
+// Jika tidak ada atau kosong, ia akan menyalinnya dari template proyek.
+func setupStarship() error {
+	currentUser, err := user.Current()
+	if err != nil {
+		return err
+	}
+	homeDir := currentUser.HomeDir
+
+	// Path ke file konfigurasi starship pengguna
+	configDir := filepath.Join(homeDir, ".config")
+	starshipConfigPath := filepath.Join(configDir, "starship.toml")
+
+	// Periksa apakah file sudah ada dan tidak kosong
+	info, err := os.Stat(starshipConfigPath)
+	if err == nil && info.Size() > 0 {
+		// File sudah ada dan tidak kosong, tidak perlu melakukan apa-apa
+		return nil
+	}
+
+	// Jika file tidak ada atau kosong, buat/timpa
+	// Pastikan direktori ~/.config ada
+	if _, err := os.Stat(configDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(configDir, 0755); err != nil {
+			return err
+		}
+	}
+
+	// Dapatkan path template dari direktori executable
+	exePath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	exeDir := filepath.Dir(exePath)
+	templatePath := filepath.Join(exeDir, "config", "starship.toml")
+
+	// Baca template
+	templateContent, err := os.ReadFile(templatePath)
+	if err != nil {
+		return err
+	}
+
+	// Tulis template ke file konfigurasi pengguna
+	return os.WriteFile(starshipConfigPath, templateContent, 0644)
 }

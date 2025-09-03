@@ -7,7 +7,7 @@ import (
 )
 
 // MOTD mencetak Message Of The Day (MOTD) aplikasi ROut.
-func MOTD() {
+func MOTD(version string) {
 	fmt.Println(`
 ┌──────────────────────────────────────────┐
 │                                          │
@@ -20,7 +20,7 @@ func MOTD() {
 │                                          │
 └──────────────────────────────────────────┘
 `)
-	util.TypeOut(fmt.Sprintf("  Version: %s | OS: %s | Arch: %s", "v0.0.3", runtime.GOOS, runtime.GOARCH))
+	util.TypeOut(fmt.Sprintf("  Version: %s | OS: %s | Arch: %s", version, runtime.GOOS, runtime.GOARCH))
 	util.TypeOut("  Ketik 'help' untuk bantuan, 'exit' untuk keluar.")
 	fmt.Println()
 }

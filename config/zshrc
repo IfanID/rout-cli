@@ -85,9 +85,6 @@ source $ZSH/oh-my-zsh.sh
 alias ls='lsd'
 
 
-# Atur prompt kustom
-PROMPT='ROut » %2~ %# '
-
 # Tentukan root proyek dari environment variable yang disediakan oleh Go
 PROJECT_ROOT=$(dirname $ROUT_EXECUTABLE_PATH)
 
@@ -97,3 +94,6 @@ for cmd_file in "$PROJECT_ROOT"/config/commands/*.zsh; do
     source "$cmd_file"
   fi
 done
+
+# Inisialisasi Starship
+eval "$(starship init zsh)"

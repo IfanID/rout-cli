@@ -1,0 +1,97 @@
+# ~/.config/starship.toml
+
+# Skema untuk auto-completion dan validasi di editor
+"$schema" = 'https://starship.rs/config-schema.json'
+
+# =================
+# Konfigurasi Global
+# =================
+
+# `add_newline = false` berarti tidak ada baris kosong antar prompt
+add_newline = false
+
+# `format` mendefinisikan struktur dan urutan modul pada prompt.
+# Ini adalah prompt dua baris, dipisahkan oleh `$line_break`.
+format = """[](fg:#fabd2f)[ ❯ ROut ](bg:#fabd2f fg:#282828)[](fg:#fabd2f bg:#458588)$directory[](fg:#458588 bg:#449dab)$git_branch$git_status[](fg:#449dab bg:#7EC699)$golang$c$cpp$java$kotlin$python$nodejs[](fg:#7EC699 bg:#6272a4)$time[](fg:#6272a4)$line_break$character"""
+
+# =========================
+# --- Konfigurasi Modul ---
+# =========================
+
+# Modul Direktori
+# Menampilkan path direktori saat ini.
+[directory]
+style = "bg:#458588"
+format = "[ $path ](fg:#ffffff bg:#458588)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+# Modul Git
+# Menampilkan informasi tentang branch dan status Git.
+[git_branch]
+symbol = ""
+style = "bg:#449dab"
+format = "[[ $symbol $branch ](fg:#ffffff)]($style)"
+
+[git_status]
+style = "bg:#449dab"
+format = "[[($all_status$ahead_behind)](fg:#ffffff)]($style)"
+
+# ==============================
+# Modul Bahasa Pemrograman
+# Menampilkan versi bahasa yang terdeteksi di direktori.
+# ==============================
+
+[golang]
+symbol = "🐹 "
+style = "bg:#7EC699"
+format = "[[ $symbol ($version) ](fg:#ffffff)]($style)"
+
+[c]
+symbol = " "
+style = "bg:#7EC699"
+format = "[[ $symbol ($version) ](fg:#ffffff)]($style)"
+
+[cpp]
+symbol = " "
+style = "bg:#7EC699"
+format = "[[ $symbol ($version) ](fg:#ffffff)]($style)"
+
+[java]
+symbol = "☕️ "
+style = "bg:#7EC699"
+format = "[[ $symbol ($version) ](fg:#ffffff)]($style)"
+
+[kotlin]
+symbol = " "
+style = "bg:#7EC699"
+format = "[[ $symbol ($version) ](fg:#ffffff)]($style)"
+
+[python]
+symbol = "🐍 "
+style = "bg:#7EC699"
+format = "[[ $symbol ($version) ](fg:#ffffff)]($style)"
+
+[nodejs] # Untuk JavaScript/Node.js
+symbol = " "
+style = "bg:#7EC699"
+format = "[[ $symbol ($version) ](fg:#ffffff)]($style)"
+
+# =================
+# Modul Lainnya
+# =================
+
+# Modul Waktu
+# Menampilkan waktu saat ini.
+[time]
+disabled = false
+time_format = "%R" # Format 24 jam
+style = "bg:#6272a4"
+format = "[[  $time ](fg:#ffffff)]($style)"
+
+# Modul Karakter
+# Menampilkan simbol status untuk perintah terakhir (sukses/gagal).
+[character]
+success_symbol = "[➜](bold green)"
+error_symbol = "[✖](bold red)"
+

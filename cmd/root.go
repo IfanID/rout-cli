@@ -12,6 +12,8 @@ import (
 	"rout/cmd/ui"
 )
 
+var version = "v0.0.6"
+
 // rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
 var rootCmd = &cobra.Command{
 	Use:   "rout",
@@ -23,7 +25,7 @@ Cobra adalah pustaka CLI untuk Go yang memberdayakan aplikasi.
 Aplikasi ini adalah alat untuk menghasilkan file yang dibutuhkan
 untuk membuat aplikasi Cobra dengan cepat.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		core.MOTD() // Cetak MOTD saat aplikasi dimulai
+		core.MOTD(version) // Cetak MOTD saat aplikasi dimulai
 		ui.StartShellSession()
 	},
 }

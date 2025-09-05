@@ -12,7 +12,7 @@ import (
 	"rout/cmd/ui"
 )
 
-var version = "v0.0.6"
+var version = "v0.0.7"
 
 // rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
 var rootCmd = &cobra.Command{

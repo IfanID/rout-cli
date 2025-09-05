@@ -61,6 +61,12 @@ func setupZshEnvironment() (string, error) {
 		// Untuk saat ini, kita tidak menghentikan proses utama.
 	}
 
+	// Siapkan konfigurasi directory.json
+	if err := setupDirectoryConfig(); err != nil {
+		// Jika terjadi error, kita bisa log atau menanganinya di sini.
+		// Untuk saat ini, kita tidak menghentikan proses utama.
+	}
+
 	return customZdotdir, nil
 }
 
@@ -108,4 +114,40 @@ func setupStarship() error {
 
 	// Tulis template ke file konfigurasi pengguna
 	return os.WriteFile(starshipConfigPath, templateContent, 0644)
+}
+
+// setupDirectoryConfig memastikan file konfigurasi directory.json ada di ~/.rout.
+// Jika tidak ada, ia akan menyalinnya dari template proyek.
+func setupDirectoryConfig() error {
+	currentUser, err := user.Current()
+	if err != nil {
+		return err
+	}
+	homeDir := currentUser.HomeDir
+
+	// Path ke direktori konfigurasi rout
+	routConfigDir := filepath.Join(homeDir, ".rout")
+	directoryConfigPath := filepath.Join(routConfigDir, "directory.json")
+
+	// Periksa apakah file sudah ada. Jika ya, tidak perlu melakukan apa-apa.
+	if _, err := os.Stat(directoryConfigPath); err == nil {
+		return nil
+	}
+
+	// Dapatkan path template dari direktori executable
+	exePath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	exeDir := filepath.Dir(exePath)
+	templatePath := filepath.Join(exeDir, "config", "directory.json")
+
+	// Baca template
+	templateContent, err := os.ReadFile(templatePath)
+	if err != nil {
+		return err
+	}
+
+	// Tulis template ke file konfigurasi pengguna
+	return os.WriteFile(directoryConfigPath, templateContent, 0644)
 }

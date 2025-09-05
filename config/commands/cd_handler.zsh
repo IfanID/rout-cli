@@ -11,8 +11,6 @@ _rout_run_cd_command() {
 
   if [ -n "$target_dir" ]; then
     cd "$target_dir" || echo "zsh: no such file or directory: $target_dir"
-  else
-    echo "Error: Perintah '$(basename "$1")' tidak menghasilkan output direktori."
   fi
 }
 

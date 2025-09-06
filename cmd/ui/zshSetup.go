@@ -67,6 +67,10 @@ func setupZshEnvironment() (string, error) {
 		// Untuk saat ini, kita tidak menghentikan proses utama.
 	}
 
+	
+
+	
+
 	return customZdotdir, nil
 }
 
@@ -151,3 +155,5 @@ func setupDirectoryConfig() error {
 	// Tulis template ke file konfigurasi pengguna
 	return os.WriteFile(directoryConfigPath, templateContent, 0644)
 }
+
+

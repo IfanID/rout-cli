@@ -1,31 +1,28 @@
-# File ini khusus menangani perintah 'cd' yang dibuat dari file Go.
+# File ini khusus menangani perintah 'cd' yang terkait dengan 'rout'.
 
 # Dapatkan root direktori proyek secara dinamis berdasarkan lokasi file ini.
-# (%):-%x adalah path ke file ini. dirname akan naik satu level direktori.
 PROJECT_ROOT=$(dirname $(dirname $(dirname "${(%):-%x}")))
 
 # Fungsi pembantu untuk menjalankan perintah 'cd'
-_rout_run_cd_command() {
+_rout_run_cd_sub() {
   local target_dir
-  target_dir=$(go run "$1" "${@:2}")
+  # Jalankan 'rout sub' dan teruskan semua argumen (misal: -ganti, -lokasi)
+  target_dir=$($PROJECT_ROOT/rout sub "$@")
 
+  # Jika output tidak kosong (artinya bukan hanya pesan status), coba cd
   if [ -n "$target_dir" ]; then
-    cd "$target_dir" || echo "zsh: no such file or directory: $target_dir"
+    # Pastikan kita hanya mengambil baris terakhir jika ada output lain
+    target_dir=$(echo "$target_dir" | tail -n 1)
+    if [ -d "$target_dir" ]; then
+        cd "$target_dir" || echo "zsh: no such file or directory: $target_dir"
+    # else
+        # Jika output bukan direktori yang valid, cetak saja (misal: output dari -lokasi)
+        # echo "$target_dir"
+    fi
   fi
 }
 
-COMMANDS_DIR="$PROJECT_ROOT/core/system/command"
-
-if [ -d "$COMMANDS_DIR" ]; then
-  # Loop hanya untuk file yang cocok dengan pola 'cd_*.go'
-  for cmd_file in "$COMMANDS_DIR"/cd_*.go;
-  do
-    if [ -f "$cmd_file" ]; then
-      local base_name=$(basename "$cmd_file" .go)
-      local cmd_name=${base_name#cd_}
-      
-      # Definisikan fungsi yang memanggil helper 'cd'
-      eval "$cmd_name() { _rout_run_cd_command \"$cmd_file\" \"\$@\" }"
-    fi
-  done
-fi
+# Definisikan fungsi 'sub' secara eksplisit
+sub() {
+  _rout_run_cd_sub "$@"
+}

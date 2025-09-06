@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 	"runtime"
-	"rout/core/system/util"
+	"rout/cmd/core/system/util"
 )
 
 // MOTD mencetak Message Of The Day (MOTD) aplikasi ROut.

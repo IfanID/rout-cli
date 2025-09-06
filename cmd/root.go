@@ -8,11 +8,12 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"rout/core"
+	"rout/cmd/core"
 	"rout/cmd/ui"
+	"rout/cmd/core/system/command"
 )
 
-var version = "v0.0.7"
+var version = "v0.0.8"
 
 // rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
 var rootCmd = &cobra.Command{
@@ -41,13 +42,12 @@ func Execute(initialCwd string) {
 }
 
 func init() {
-	// Di sini Anda akan mendefinisikan flag dan pengaturan konfigurasi Anda.
-	// Cobra mendukung flag persisten, yang, jika didefinisikan di sini,
-	// akan bersifat global untuk aplikasi Anda.
+	rootCmd.AddCommand(command.ConvCmd)
+	rootCmd.AddCommand(command.SubCmd)
+	rootCmd.AddCommand(command.HelpCmd)
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "file konfigurasi (default adalah $HOME/.rout.yaml)")
+	command.SubCmd.Flags().BoolVarP(&command.ForceChange, "ganti", "g", false, "Paksa untuk mengubah lokasi 'sub'")
+	command.SubCmd.Flags().BoolVarP(&command.ShowLocation, "lokasi", "l", false, "Tampilkan lokasi 'sub' saat ini")
 
-	// Cobra juga mendukung flag lokal, yang hanya akan berjalan
-	// ketika tindakan ini dipanggil secara langsung.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Pesan bantuan untuk toggle")
 }

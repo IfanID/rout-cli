@@ -1,3 +1,6 @@
 # Binaries for the project
 rout
 *.zcompdump*
+
+# Secrets and environment variables
+.env

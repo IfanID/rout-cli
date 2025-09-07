@@ -1,12 +1,15 @@
 # Rout CLI
 
-Rout adalah sebuah antarmuka baris perintah (CLI) yang kini berfungsi sebagai *wrapper* untuk Zsh. Ini memungkinkan Anda untuk menjalankan sesi Zsh yang terisolasi dengan konfigurasi kustom, terpisah dari konfigurasi Zsh utama sistem Anda.
+Rout adalah antarmuka baris perintah (CLI) serbaguna yang kini dilengkapi dengan integrasi AI Gemini. Selain berfungsi sebagai *wrapper* untuk Zsh, Rout juga menyediakan perintah interaktif untuk berinteraksi langsung dengan model bahasa besar.
 
 ## Fitur Utama
 
--   **Wrapper Zsh**: Menjalankan sesi Zsh yang sepenuhnya fungsional.
--   **Konfigurasi Terisolasi**: Menggunakan file konfigurasi Zsh (`.zshrc`) yang terpisah di `~/.rout/`, sehingga tidak mengganggu setup Zsh utama Anda.
--   **Oh My Zsh Default**: Secara default, `rout` akan memuat tema dan plugin standar dari Oh My Zsh, memberikan pengalaman shell yang kaya fitur.
+-   **Integrasi AI Gemini**: Perintah `rcli` memungkinkan Anda berinteraksi dengan model Gemini AI secara interaktif.
+-   **Animasi Menunggu Respons**: Menampilkan animasi visual yang menarik saat menunggu respons dari AI.
+-   **Output AI yang Rapi**: Jawaban dari AI diformat dengan *word wrap* otomatis agar mudah dibaca.
+-   **Konfigurasi Bahasa AI**: AI diinstruksikan untuk selalu menggunakan Bahasa Indonesia (campuran formal dan non-formal).
+-   **Penanganan API Key Aman**: Menggunakan file `.env` untuk menyimpan API Key Gemini dengan aman.
+-   **Wrapper Zsh (Opsional)**: Masih dapat berfungsi sebagai *wrapper* untuk Zsh dengan konfigurasi terisolasi (fitur lama, bisa disebutkan singkat).
 
 ## Instalasi
 
@@ -18,12 +21,24 @@ Untuk menginstal `rout`, Anda perlu meng-compile kode sumbernya. Pastikan Anda m
     cd rout-cli
     ```
 
-2.  **Compile Aplikasi:**
+2.  **Instal Dependensi Go:**
+    ```bash
+    go mod tidy
+    ```
+
+3.  **Siapkan API Key Gemini:**
+    Buat file `.env` di root direktori proyek (`rout-cli/`) dan tambahkan API Key Gemini Anda:
+    ```
+    GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
+    ```
+    Ganti `YOUR_GEMINI_API_KEY_HERE` dengan API Key Gemini Anda yang sebenarnya.
+
+4.  **Compile Aplikasi:**
     ```bash
     go build -o rout
     ```
 
-3.  **Pindahkan Binary (Opsional):**
+5.  **Pindahkan Binary (Opsional):**
     Untuk dapat menjalankan `rout` dari mana saja, pindahkan *binary* yang sudah di-compile ke direktori `$PATH` Anda (misalnya `/usr/local/bin` atau `/data/data/com.termux/files/usr/bin` untuk Termux).
     ```bash
     mv rout /data/data/com.termux/files/usr/bin/
@@ -31,28 +46,34 @@ Untuk menginstal `rout`, Anda perlu meng-compile kode sumbernya. Pastikan Anda m
 
 ## Penggunaan
 
-Setelah instalasi, Anda bisa menjalankan `rout` dari terminal Anda:
+### Perintah `rcli` (Interaksi AI)
+
+Untuk memulai sesi chat interaktif dengan AI Gemini:
+
+```bash
+rout rcli
+```
+
+Setelah menjalankan perintah di atas, Anda akan masuk ke mode chat. Ketik pertanyaan Anda dan tekan Enter. Ketik `exit` atau `keluar` untuk mengakhiri sesi.
+
+### Mode Zsh (Fitur Lama)
+
+Untuk meluncurkan sesi Zsh baru dengan konfigurasi terisolasi (fitur asli `rout`):
 
 ```bash
 rout
 ```
 
-Ini akan meluncurkan sesi Zsh baru dengan konfigurasi yang dimuat dari `~/.rout/.zshrc`.
+Ini akan memuat konfigurasi Zsh dari `~/.rout/.zshrc`.
 
-## Konfigurasi Zsh Kustom
+## Konfigurasi Zsh Kustom (Fitur Lama)
 
 `rout` dirancang untuk menggunakan file `.zshrc` yang terpisah agar konfigurasi Anda tidak bercampur.
 
 -   **Lokasi File Konfigurasi**: File `.zshrc` yang digunakan oleh `rout` berada di `~/.rout/.zshrc`.
 -   **Mengedit Konfigurasi**: Anda bisa mengedit file ini menggunakan editor teks favorit Anda. Perubahan akan diterapkan saat Anda menjalankan `rout` berikutnya.
-    ```bash
-    nano ~/.rout/.zshrc
-    # atau
-    vim ~/.rout/.zshrc
-    ```
--   **Tema dan Plugin**: Anda bisa mengubah `ZSH_THEME` atau menambahkan `plugins` di file `~/.rout/.zshrc` ini, sama seperti Anda mengonfigurasi Oh My Zsh biasa.
 
 ## Catatan Penting
 
--   `rout` tidak lagi menyediakan perintah CLI internal (seperti `ls`, `cd`, `mkdir`, dll.) yang ditulis dalam Go. Semua perintah ditangani oleh Zsh itu sendiri.
--   Pastikan Oh My Zsh terinstal di sistem Anda, karena `rout` bergantung padanya untuk memuat tema dan plugin.
+-   Pastikan Anda memiliki koneksi internet untuk berinteraksi dengan AI Gemini.
+-   Model AI yang digunakan saat ini adalah `gemini-2.5-flash`.

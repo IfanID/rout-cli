@@ -11,6 +11,7 @@ import (
 	"rout/cmd/core"
 	"rout/cmd/ui"
 	"rout/cmd/core/system/command"
+	"rout/cmd/rcli"
 )
 
 var version = "v0.0.8"
@@ -42,6 +43,7 @@ func Execute(initialCwd string) {
 }
 
 func init() {
+	rootCmd.AddCommand(rcli.RcliCmd)
 	rootCmd.AddCommand(command.ConvCmd)
 	rootCmd.AddCommand(command.SubCmd)
 	rootCmd.AddCommand(command.HelpCmd)

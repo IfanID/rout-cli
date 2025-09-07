@@ -15,3 +15,7 @@ conv() {
 help() {
     _rout_run_generic_command "help" "$@"
 }
+
+rcli() {
+    _rout_run_generic_command "rcli" "$@"
+}

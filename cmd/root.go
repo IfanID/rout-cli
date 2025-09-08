@@ -14,7 +14,7 @@ import (
 	"rout/cmd/rcli"
 )
 
-var version = "v0.0.8"
+var version = "v0.0.10"
 
 // rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
 var rootCmd = &cobra.Command{

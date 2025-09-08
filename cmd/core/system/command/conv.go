@@ -3,14 +3,18 @@ package command
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
+	"rout/cmd/API"
 	"rout/cmd/core/system/util"
 )
 
@@ -44,7 +48,7 @@ Penggunaan:
 		}
 	} else {
 		handleConversion(args[0])
-	}
+		}
 	},
 }
 
@@ -143,9 +147,9 @@ func runFfmpegAndCue(inputFile string, outDir string) {
 		fmt.Fprintf(os.Stderr, "Error: File input '%s' harus berekstensi .ts\n", inputFile)
 		return
 	}
-	outputFile := filepath.Join(outDir, strings.TrimSuffix(inputFile, ".ts") + ".vtt")
+	outputFile := filepath.Join(outDir, strings.TrimSuffix(inputFile, ".ts")+".vtt")
 
-	fmt.Printf("Mengonversi %s...\n", inputFile)
+	fmt.Printf("▶️  Mengonversi %s ke format VTT...\n", inputFile)
 	cmd := exec.Command("ffmpeg", "-y", "-i", inputFile, outputFile)
 
 	var stderr bytes.Buffer
@@ -153,22 +157,29 @@ func runFfmpegAndCue(inputFile string, outDir string) {
 
 	err := cmd.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error menjalankan ffmpeg untuk %s: %v\n", inputFile, err)
+		fmt.Fprintf(os.Stderr, "❌ Error menjalankan ffmpeg untuk %s: %v\n", inputFile, err)
 		fmt.Fprintf(os.Stderr, "FFmpeg output:\n%s\n", stderr.String())
 		return
 	}
+	fmt.Printf("✅ Konversi selesai: %s\n", outputFile)
 
+	fmt.Println("🔍 Menambahkan atau memperbarui CUE...")
 	err = addCue(outputFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error menambahkan CUE ke %s: %v\n", outputFile, err)
+		fmt.Fprintf(os.Stderr, "❌ Error menambahkan CUE ke %s: %v\n", outputFile, err)
 		return
 	}
 
+	// Jeda singkat untuk memastikan sistem file selesai menulis sebelum verifikasi
+	time.Sleep(100 * time.Millisecond)
+
 	if !verifyCue(outputFile) {
 		fmt.Fprintf(os.Stderr, "⚠️  Peringatan: Gagal memverifikasi CUE di file %s.\n", outputFile)
+	} else {
+		fmt.Println("✅ CUE berhasil ditambahkan atau diperbarui")
 	}
 
-	fmt.Printf("✅ Selesai: %s\n", outputFile)
+	fmt.Printf("🎉 Semua proses selesai untuk: %s\n", outputFile)
 }
 
 func addCue(filename string) error {
@@ -179,8 +190,72 @@ func addCue(filename string) error {
 	}
 
 	cueContent := "Ifan.3 V2S CoreX"
-	newTimestamp := "00:00.003 --> 00:02.500"
-	cueBlock := []string{newTimestamp, cueContent, ""}
+
+	// --- Block Analisis Gemini & Penyesuaian Timestamp ---
+	var finalTimestamp string
+
+	apiKey := API.GetGeminiAPIKey()
+	if apiKey == "" {
+		return fmt.Errorf("GEMINI_API_KEY tidak ditemukan. Silakan atur environment variable atau buat file .env")
+	}
+
+	fmt.Println("🔍 Menghubungkan ke Gemini API untuk analisis CUE...")
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second) // Timeout dinaikkan menjadi 60 detik
+	defer cancel()
+
+	vttHeader := API.ExtractVTTHeader(lines, 10*time.Second)
+	geminiTimestamp, reason, err := API.AnalyzeVTTForCUE(ctx, apiKey, vttHeader)
+	if err != nil {
+		return fmt.Errorf("gagal menganalisis konten dengan Gemini API: %w", err)
+	}
+
+	fmt.Printf("🤖 Gemini menyarankan timestamp: %s\n", geminiTimestamp)
+	fmt.Printf("📋 Alasan: %s\n", reason)
+	
+	fmt.Println("\n--- Info Analisis Detail ---")
+	fmt.Println("Cuplikan Subtitle yang Dianalisis:")
+	fmt.Println(vttHeader)
+	fmt.Println("--------------------------")
+
+	// Terapkan aturan baru
+	tsParts := strings.Split(geminiTimestamp, " --> ")
+	if len(tsParts) != 2 {
+		return fmt.Errorf("timestamp dari Gemini tidak valid: %s", geminiTimestamp)
+	}
+
+	cueStart, err := parseVTTDuration(tsParts[0])
+	if err != nil {
+		return fmt.Errorf("gagal parse waktu mulai CUE: %w", err)
+	}
+	cueEnd, err := parseVTTDuration(tsParts[1])
+	if err != nil {
+		return fmt.Errorf("gagal parse waktu akhir CUE: %w", err)
+	}
+
+	fmt.Println("Proses Penyesuaian Timestamp:")
+	
+	// Aturan 1: Hindari Tumpang Tindih
+	if firstDialogueStart, found := findFirstDialogueStartTime(lines); found {
+		fmt.Printf("- Waktu mulai dialog pertama terdeteksi: %s\n", formatVTTDuration(firstDialogueStart))
+		if cueEnd >= firstDialogueStart {
+			fmt.Printf("  ℹ️  Waktu akhir CUE (%s) menabrak/melewati dialog pertama. Menyesuaikan...\n", formatVTTDuration(cueEnd))
+			cueEnd = firstDialogueStart - time.Millisecond
+		}
+	}
+
+	// Aturan 2: Durasi Minimal 2 Detik
+	minDuration := 2 * time.Second
+	if cueEnd-cueStart < minDuration {
+		fmt.Printf("  ℹ️  Durasi CUE (%s) kurang dari 2 detik. Menyesuaikan...\n", (cueEnd-cueStart).String())
+		cueEnd = cueStart + minDuration
+	}
+
+	finalTimestamp = formatVTTDuration(cueStart) + " --> " + formatVTTDuration(cueEnd)
+	fmt.Println("--------------------------")
+	fmt.Printf("✅ Timestamp final setelah penyesuaian: %s\n\n", finalTimestamp)
+	// --- Akhir Block ---
+
+	cueBlock := []string{finalTimestamp, cueContent, ""}
 
 	cueFoundIndex := -1
 	for i, line := range lines {
@@ -191,8 +266,9 @@ func addCue(filename string) error {
 	}
 
 	if cueFoundIndex != -1 {
+		fmt.Println("🔄 Memperbarui CUE yang sudah ada...")
 		if cueFoundIndex > 0 {
-			lines[cueFoundIndex-1] = newTimestamp
+			lines[cueFoundIndex-1] = finalTimestamp
 		}
 		lines[cueFoundIndex] = cueContent
 		if cueFoundIndex+1 < len(lines) && lines[cueFoundIndex+1] != "" {
@@ -201,7 +277,8 @@ func addCue(filename string) error {
 			lines = append(lines, "")
 		}
 	} else {
-		timestampRegex, err := regexp.Compile(`^\d{2}:\d{2}:\d{2}\.\d{3}\s-->\s\d{2}:\d{2}:\d{2}\.\d{3}`)
+		fmt.Println("➕ Menambahkan CUE baru...")
+		timestampRegex, err := regexp.Compile(`^(\d{2}:)?\d{2}:\d{2}\.\d{3}\s-->\s(\d{2}:)?\d{2}:\d{2}\.\d{3}`)
 		if err != nil {
 			return fmt.Errorf("gagal compile regex: %w", err)
 		}
@@ -221,22 +298,100 @@ func addCue(filename string) error {
 		}
 	}
 
+	fmt.Println("\n--- Hasil Akhir Sebelum Disimpan ---")
+	for i := 0; i < 15 && i < len(lines); i++ {
+		fmt.Println(lines[i])
+	}
+	fmt.Println("---------------------------------")
+
 	outFile, err := os.Create(tmpfile)
 	if err != nil {
 		return fmt.Errorf("gagal membuat file sementara: %w", err)
 	}
-	defer outFile.Close()
 
 	writer := bufio.NewWriter(outFile)
 	for _, line := range lines {
-		writer.WriteString(line + "\n")
+		_, err := writer.WriteString(line + "\n")
+		if err != nil {
+			outFile.Close() // Pastikan file ditutup sebelum return
+			return fmt.Errorf("gagal menulis ke file sementara: %w", err)
+		}
 	}
 
 	if err := writer.Flush(); err != nil {
+		outFile.Close() // Pastikan file ditutup sebelum return
 		return fmt.Errorf("gagal flush writer: %w", err)
 	}
 
+	// Tutup file secara eksplisit sebelum me-rename
+	if err := outFile.Close(); err != nil {
+		return fmt.Errorf("gagal menutup file sementara: %w", err)
+	}
+
+	// Rename file sementara ke file asli
 	return os.Rename(tmpfile, filename)
+}
+
+// parseVTTDuration mengubah VTT timestamp string (misal: 00:01:02.345) menjadi time.Duration
+func parseVTTDuration(ts string) (time.Duration, error) {
+	var h, m, s, ms int
+	// Format bisa hh:mm:ss.ms atau mm:ss.ms
+	parts := strings.Split(ts, ":")
+	var err error
+	if len(parts) == 3 { // hh:mm:ss.ms
+		h, err = strconv.Atoi(parts[0])
+		if err != nil { return 0, err }
+		m, err = strconv.Atoi(parts[1])
+		if err != nil { return 0, err }
+		sMs := strings.Split(parts[2], ".")
+		s, err = strconv.Atoi(sMs[0])
+		if err != nil { return 0, err }
+		ms, err = strconv.Atoi(sMs[1])
+		if err != nil { return 0, err }
+	} else if len(parts) == 2 { // mm:ss.ms
+		m, err = strconv.Atoi(parts[0])
+		if err != nil { return 0, err }
+		sMs := strings.Split(parts[1], ".")
+		s, err = strconv.Atoi(sMs[0])
+		if err != nil { return 0, err }
+		ms, err = strconv.Atoi(sMs[1])
+		if err != nil { return 0, err }
+	} else {
+		return 0, fmt.Errorf("format timestamp tidak valid: %s", ts)
+	}
+
+	return time.Duration(h)*time.Hour + time.Duration(m)*time.Minute + time.Duration(s)*time.Second + time.Duration(ms)*time.Millisecond, nil
+}
+
+// formatVTTDuration mengubah time.Duration menjadi VTT timestamp string (hh:mm:ss.ms)
+func formatVTTDuration(d time.Duration) string {
+	d = d.Round(time.Millisecond)
+	h := d / time.Hour
+	d -= h * time.Hour
+	m := d / time.Minute
+	d -= m * time.Minute
+	s := d / time.Second
+	d -= s * time.Second
+	ms := d / time.Millisecond
+	return fmt.Sprintf("%02d:%02d:%02d.%03d", h, m, s, ms)
+}
+
+// findFirstDialogueStartTime mencari waktu mulai subtitle dialog pertama
+func findFirstDialogueStartTime(lines []string) (time.Duration, bool) {
+	re := regexp.MustCompile(`^(\d{2}:)?\d{2}:\d{2}\.\d{3}\s-->\s(\d{2}:)?\d{2}:\d{2}\.\d{3}`)
+	for i, line := range lines {
+		if i > 0 && strings.Contains(lines[i-1], "Ifan.3 V2S CoreX") {
+			continue // Lewati timestamp dari CUE yang sudah ada
+		}
+		if re.MatchString(line) {
+			parts := strings.Split(line, " --> ")
+			startTime, err := parseVTTDuration(parts[0])
+			if err == nil {
+				return startTime, true
+			}
+		}
+	}
+	return 0, false // Tidak ditemukan dialog
 }
 
 func verifyCue(filename string) bool {

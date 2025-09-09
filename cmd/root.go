@@ -14,7 +14,7 @@ import (
 	"rout/cmd/rcli"
 )
 
-var version = "v0.0.10"
+var version = "v0.0.11"
 
 // rootCmd merepresentasikan perintah dasar ketika dipanggil tanpa subperintah
 var rootCmd = &cobra.Command{
@@ -46,10 +46,14 @@ func init() {
 	rootCmd.AddCommand(rcli.RcliCmd)
 	rootCmd.AddCommand(command.ConvCmd)
 	rootCmd.AddCommand(command.SubCmd)
+	rootCmd.AddCommand(command.RmanCmd)
 	rootCmd.AddCommand(command.HelpCmd)
 
 	command.SubCmd.Flags().BoolVarP(&command.ForceChange, "ganti", "g", false, "Paksa untuk mengubah lokasi 'sub'")
 	command.SubCmd.Flags().BoolVarP(&command.ShowLocation, "lokasi", "l", false, "Tampilkan lokasi 'sub' saat ini")
+
+	command.RmanCmd.Flags().BoolVarP(&command.ForceChange, "ganti", "g", false, "Paksa untuk mengubah lokasi 'rman'")
+	command.RmanCmd.Flags().BoolVarP(&command.ShowLocation, "lokasi", "l", false, "Tampilkan lokasi 'rman' saat ini")
 
 	rootCmd.Flags().BoolP("toggle", "t", false, "Pesan bantuan untuk toggle")
 }

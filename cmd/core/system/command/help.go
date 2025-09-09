@@ -31,11 +31,28 @@ func runHelpCommand(cmd *cobra.Command, args []string) {
 			},
 		},
 		{
-			Name:        "help",
-			Description: "Menampilkan daftar perintah dan bantuan ini.",
-			Flags:       []string{},
+			Name:        "rman",
+			Description: "Mengatur atau pindah ke direktori 'rman'.",
+			Flags: []string{
+				"-ganti  : Paksa untuk mengatur ulang lokasi direktori.",
+				"-lokasi : Tampilkan lokasi direktori yang saat ini disimpan.",
+			},
 		},
-		// Tambahkan perintah baru di sini di masa depan.
+	}
+
+	convCmd := CommandHelp{
+		Name:        "conv",
+		Description: "Konversi file .ts ke .vtt dengan CUE cerdas.",
+		Flags: []string{
+			"<namafile.ts> : Mengonversi satu file.",
+			"all           : Mengonversi semua file .ts di direktori.",
+		},
+	}
+
+	helpCmd := CommandHelp{
+		Name:        "help",
+		Description: "Menampilkan daftar perintah dan bantuan ini.",
+		Flags:       []string{},
 	}
 
 	fmt.Println("\nPerintah Khusus ROut")
@@ -51,6 +68,22 @@ func runHelpCommand(cmd *cobra.Command, args []string) {
 				fmt.Printf("      %s\n", flag)
 			}
 		}
+
+		if cmd.Name == "sub" {
+			fmt.Printf("\n    └── ■ %s\n", convCmd.Name)
+			fmt.Printf("        %s\n", convCmd.Description)
+			if len(convCmd.Flags) > 0 {
+				fmt.Println("        Opsi:")
+				for _, flag := range convCmd.Flags {
+					fmt.Printf("          %s\n", flag)
+				}
+			}
+		}
 	}
+
+	fmt.Println("\n---------------------")
+	fmt.Printf("\n  ■ %s\n", helpCmd.Name)
+	fmt.Printf("    %s\n", helpCmd.Description)
+
 	fmt.Println()
 }

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -12,6 +13,14 @@ import (
 )
 
 func StartShellSession() {
+	// Periksa apakah ini adalah sesi terminal interaktif
+	if !term.IsTerminal(int(os.Stdin.Fd())) {
+		fmt.Println("Bukan sesi terminal interaktif. Menjalankan dalam mode non-interaktif.")
+		// Di sini Anda bisa memutuskan untuk menjalankan logika alternatif
+		// atau keluar jika mode interaktif adalah suatu keharusan.
+		return // Keluar jika bukan terminal
+	}
+
 	// Siapkan lingkungan Zsh kustom
 	customZdotdir, err := setupZshEnvironment()
 	if err != nil {

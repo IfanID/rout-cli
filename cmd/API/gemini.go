@@ -29,15 +29,21 @@ func AnalyzeVTTForCUE(ctx context.Context, apiKey string, vttContent string) (st
 
 	// Membuat prompt untuk analisis
 	prompt := fmt.Sprintf(`
-Anda adalah ahli subtitle. Analisis konten WebVTT berikut dan tentukan penempatan CUE terbaik.
-CUE yang dicari adalah: "Ifan.3 V2S CoreX"
-Timestamp yang disukai sekitar: "00:00.003 --> 00:02.500", tetapi sesuaikan jika diperlukan berdasarkan konten.
+Anda adalah ahli subtitle. Tugas Anda adalah menentukan timestamp yang ideal untuk sebuah CUE branding ("Ifan.3 V2S CoreX") di awal file WebVTT.
+
+Aturan Penting:
+1.  **Kondisi Jeda (Gap):** Periksa waktu mulai dialog pertama. Jika dialog pertama dimulai **setelah** '00:00:04.000', **JANGAN** menimpa dialog tersebut. Tempatkan CUE di dalam jeda kosong tersebut (misal: '00:00:00.003 --> 00:00:02.503').
+2.  **Kondisi Timpa (Overwrite):** Jika dialog pertama dimulai **sebelum** '00:00:04.000', maka timestamp CUE **HARUS** tumpang tindih (overlap) dengan dialog pertama tersebut untuk menggantikannya.
+3.  **Durasi Ideal:** Buat durasi CUE sekitar 2 hingga 2.5 detik.
+4.  **Penempatan:** Saat menimpa, mulai CUE di '00:00:00.003'. Sesuaikan waktu berakhirnya ('end time') agar tumpang tindih dengan dialog pertama, namun usahakan tidak menyentuh dialog kedua jika memungkinkan.
+
+Analisis konten WebVTT berikut dan berikan timestamp berdasarkan aturan di atas.
 
 Berikan respons dalam format berikut:
 TIMESTAMP: [timestamp yang direkomendasikan]
-ALASAN: [penjelasan singkat mengapa timestamp ini dipilih]
+ALASAN: [penjelasan singkat mengapa timestamp ini dipilih, sebutkan dialog mana yang ditimpa atau jika ditempatkan di jeda]
 
-WebVTT Content:
+Konten WebVTT:
 %s
 `, vttContent)
 

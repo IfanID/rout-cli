@@ -26,3 +26,20 @@ _rout_run_cd_sub() {
 sub() {
   _rout_run_cd_sub "$@"
 }
+
+# Fungsi pembantu untuk rman
+_rout_run_cd_rman() {
+  local target_dir
+  target_dir=$($PROJECT_ROOT/rout rman "$@")
+  if [ -n "$target_dir" ]; then
+    target_dir=$(echo "$target_dir" | tail -n 1)
+    if [ -d "$target_dir" ]; then
+        cd "$target_dir" || echo "zsh: no such file or directory: $target_dir"
+    fi
+  fi
+}
+
+# Definisikan fungsi 'rman' secara eksplisit
+rman() {
+  _rout_run_cd_rman "$@"
+}
